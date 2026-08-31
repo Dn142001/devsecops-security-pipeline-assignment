@@ -81,7 +81,7 @@ jobs:
           docker logs onboarding-app
           exit 1
 
-      - name: Prepare ZAP report directory
+            - name: Prepare ZAP report directory
         run: |
           mkdir -p zap-output
           cp zap-rules.tsv zap-output/
@@ -113,3 +113,9 @@ jobs:
           retention-days: 14
 
       - name: Show application logs after failure
+        if: failure()
+        run: docker logs onboarding-app || true
+
+      - name: Remove test deployment
+        if: always()
+        run: docker rm --force onboarding-app || true
