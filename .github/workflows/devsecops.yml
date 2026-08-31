@@ -81,7 +81,7 @@ jobs:
           docker logs onboarding-app
           exit 1
 
-            - name: Prepare ZAP report directory
+      - name: Prepare ZAP report directory
         run: |
           mkdir -p zap-output
           cp zap-rules.tsv zap-output/
