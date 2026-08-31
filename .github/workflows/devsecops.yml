@@ -9,10 +9,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: devsecops-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   IMAGE_NAME: onboarding-app:${{ github.sha }}
 
@@ -36,10 +32,10 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           format: table
-          exit-code: '1'
+          exit-code: "1"
 
       - name: Install Semgrep
-        run: python -m pip install --disable-pip-version-check semgrep
+        run: python -m pip install semgrep
 
       - name: SAST gate - source code
         run: |
@@ -63,7 +59,7 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           format: table
-          exit-code: '1'
+          exit-code: "1"
 
       - name: Start test deployment
         run: |
@@ -81,12 +77,11 @@ jobs:
             fi
             sleep 2
           done
+
           docker logs onboarding-app
           exit 1
 
-
-
-            - name: Prepare ZAP report directory
+      - name: Prepare ZAP report directory
         run: |
           mkdir -p zap-output
           cp zap-rules.tsv zap-output/
@@ -102,7 +97,11 @@ jobs:
             -c zap-rules.tsv \
             -r zap-report.html \
             -J zap-report.json \
-            -m 2 -T 5- name: Upload ZAP reports
+            -m 2 \
+            -T 5 \
+            -I
+
+      - name: Upload ZAP reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -110,15 +109,7 @@ jobs:
           path: |
             zap-output/zap-report.html
             zap-output/zap-report.json
-            
-            if-no-files-found: warn
+          if-no-files-found: warn
           retention-days: 14
 
-      - name: Show application logs
-        if: failure()
-        run: docker logs onboarding-app || true
-
-      - name: Remove test deployment
-        if: always()
-        run: docker rm --force onboarding-app || true
-
+      - name: Show application logs after failure
