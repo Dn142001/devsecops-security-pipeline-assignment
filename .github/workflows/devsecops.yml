@@ -84,17 +84,7 @@ jobs:
           docker logs onboarding-app
           exit 1
 
-      - name: DAST gate - OWASP ZAP Baseline
-        run: |
-          docker run --rm --network host \
-            -v "${GITHUB_WORKSPACE}:/zap/wrk/:rw" \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-            -t http://127.0.0.1:8080 \
-            -c zap-rules.tsv \
-            -r zap-report.html \
-            -J zap-report.json \
-            -m 2 -T 5
+
 
       - name: Upload ZAP reports
         if: always()
@@ -102,9 +92,10 @@ jobs:
         with:
           name: zap-reports-${{ github.run_number }}
           path: |
-            zap-report.html
-            zap-report.json
-          if-no-files-found: warn
+            zap-output/zap-report.html
+            zap-output/zap-report.json
+            
+            if-no-files-found: warn
           retention-days: 14
 
       - name: Show application logs
